@@ -1,0 +1,50 @@
+{
+  "Comment": "Get the specified S3 Objects by filtering prefix",
+  "StartAt": "Add Prefix to filter key",
+  "States": {
+    "Add Prefix to filter key": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:ap-northeast-1:xxxx:function:AddPrefixToKeyFilter",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "ResultPath": "$.Error",
+          "Next": "Configure Errormail components"
+        }
+      ],
+      "ResultPath": "$.filter",
+      "Next": "Get S3 Objects"
+    },
+    "Get S3 Objects": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:ap-northeast-1:xxxx:function:GetS3Objects",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "ResultPath": "$.Error",
+          "Next": "Configure Errormail components"
+        }
+      ],
+      "ResultPath": "$",
+      "Next": "Send Mail"
+    },
+    "Configure Errormail components": {
+      "Type": "Pass",
+      "InputPath": "$",
+      "Result": {
+        "subject": "Error",
+        "to_addr": "xxx@co.jp",
+        "body": "following error has occured\r\n",
+        "status_code": 401
+      },
+      "ResultPath": "$.Result",
+      "Next": "Send Mail"
+    },
+    "Send Mail": {
+      "Type": "Task",
+      "InputPath": "$",
+      "Resource": "arn:aws:lambda:ap-northeast-1:xxxx:function:SendMail",
+      "End": true
+    }
+  }
+}
